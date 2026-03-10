@@ -131,5 +131,16 @@ evaluate_all_users(k=10, sample_users=50)
 pip install pandas numpy scikit-learn lightfm lightgbm tqdm faiss-cpu
 ```
 
+
+
+# Get top 10 recommendations for a user
+recs = recommend(user_id=123, topk=10, include_metadata=True)
+
+# Evaluate a single user
+precision, recall, ndcg = evaluate_user(user_id=123, k=10)
+
+# Evaluate multiple users
+evaluate_all_users(k=10, sample_users=50)
+
 ---
 
