@@ -1,0 +1,104 @@
+# Recommendation System Project
+
+## Project Overview
+This project implements a **hybrid recommendation system** for educational content. It combines **collaborative filtering** and **content-based filtering** using **LightFM** and **LightGBM ranking** models to generate personalized recommendations for users.
+
+The system is capable of:  
+- Recommending courses/items for users based on past interactions.  
+- Leveraging content metadata (title, description, category, level).  
+- Handling both small and large datasets efficiently.  
+- Evaluating recommendations using **Precision@k**, **Recall@k**, and **NDCG@k** metrics.
+
+## Datasets Used
+The project uses **two types of data**:
+
+1. **Educational Platform Dataset**  
+   - `users.xlsx`: Contains user information (`user_id`, `age`, `interest`, `level`, `learning_style`).  
+   - `interactions_edu_200000.csv`: User interactions with content (`user_id`, `content_id`, `time_spent`, `rating`).  
+   - `content.csv`: Content metadata (`content_id`, `title`, `description`, `category`, `level`).
+
+2. **Udemy Courses Dataset**  
+   - `udemy_online_education_courses_dataset.csv`: Contains course info (`course_id`, `course_title`, `subject`, `num_subscribers`, `num_reviews`).  
+   - Interaction strength approximated using `num_subscribers` and `num_reviews`.
+
+## Data Preprocessing
+- Missing values filled:  
+  - Categorical → `'unknown'`  
+  - Numerical → median or 0  
+- Interaction strength computed using **weighted combination** of ratings/time_spent or subscribers/reviews.  
+- Sparse users/items removed to ensure quality recommendations.  
+- User-item interaction matrices created (`R`).  
+- Text features combined (title + description + category + level) and transformed with **TF-IDF** for content-based features.
+
+## Models Used
+
+### 1. LightFM Hybrid Model
+- Combines **collaborative filtering** and **content features**.  
+- Item features built safely using **TF-IDF tokens**.  
+- Trained with **WARP loss**.  
+- Generates **user and item embeddings**.
+
+### 2. LightGBM Ranking Model
+- Uses features like:  
+  - User/item statistics from interaction matrix.  
+  - Dot product of user and item embeddings.  
+  - Content metadata (duration, difficulty, level match, rating).  
+- Positive and negative samples created for training.  
+- Trained to **rank candidate items** for each user.
+
+## Recommendation Workflow
+1. Generate candidate items using **FAISS similarity search**.  
+2. Compute features for each candidate (user stats, item stats, embeddings, content).  
+3. Predict scores using **LightGBM ranker**.  
+4. Return top-k recommendations, optionally with metadata.
+
+Example usage:
+```python
+recommendations = recommend(user_id=123, topk=10, include_metadata=True)
+```
+
+## Evaluation Metrics
+- **Precision@k:** Fraction of recommended items that are relevant.  
+- **Recall@k:** Fraction of relevant items that are recommended.  
+- **NDCG@k:** Ranking quality of recommended items.
+
+**Example Results (Udemy Dataset, k=10, 50 users):**
+- Average Precision@10: 0.098  
+- Average Recall@10: 0.980  
+- Average NDCG@10: 0.951
+
+**Example Results (Educational Platform Dataset, k=30, 50 users):**
+- Average Precision@30: ~0.034  
+- Average Recall@30: ~0.024  
+- Average NDCG@30: ~0.042
+
+> ✅ The hybrid approach improves recommendations by combining content similarity with user interaction patterns.
+
+## Saving and Loading Models
+- User/item mappings: `user2index.pkl`, `item2index.pkl`, `index2item.pkl`  
+- Embeddings: `user_embeddings.npy`, `item_embeddings.npy`  
+- Models: `lightfm_model.pkl` (LightFM), `ranker_model.txt` (LightGBM)  
+- TF-IDF Vectorizer: `tfidf_vectorizer.pkl`
+
+## How to Use
+```python
+# Get top 10 recommendations for a user
+recs = recommend(user_id=123, topk=10, include_metadata=True)
+
+# Evaluate a single user
+precision, recall, ndcg = evaluate_user(user_id=123, k=10)
+
+# Evaluate multiple users
+evaluate_all_users(k=10, sample_users=50)
+```
+
+## Requirements
+```bash
+pip install pandas numpy scikit-learn lightfm lightgbm tqdm faiss-cpu
+```
+
+## Notes
+- FAISS is used for fast similarity search over embeddings.  
+- Negative sampling is applied for ranking training.  
+- Supports partial title search and recommendations based on similar courses.
+
