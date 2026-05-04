@@ -1,7 +1,11 @@
 fastapi
 uvicorn
+pandas
 numpy
-lightgbm
 scikit-learn
-lightfm
-faiss-cpu
+lightgbm==4.3.0
+#lightfm==1.17
+tqdm
+scipy
+streamlit
+requests
