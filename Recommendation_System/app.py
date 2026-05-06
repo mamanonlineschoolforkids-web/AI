@@ -6,7 +6,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 app = FastAPI(title="Content-Based Recommendation API")
 
 # ================= LOAD DATA =================
-df = pd.read_csv("E:\\faculty\\Ma'man\\Recommendation_System\\Recommendation_System\\data\\content.csv")
+df = pd.read_csv("data/content.csv")
 
 # clean titles
 df['title'] = df['title'].fillna("")
