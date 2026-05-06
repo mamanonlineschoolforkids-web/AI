@@ -1,41 +1,73 @@
 # 💬 FAQ Chatbot (Arabic & English)
 
-## 🚀 Idea
+## 🚀 Overview
 
-This project is a simple **FAQ chatbot** that:
+This project is an **intelligent multilingual FAQ Chatbot** that:
 
-1. Loads predefined Q\&A pairs from a JSON file (`faq_data.json`).
-2. Lets the user ask a question in **Arabic or English**.
-3. Matches the input with existing questions using **fuzzy similarity**.
-4. Returns the most relevant answers in the selected language.
+- Loads Q&A data from a JSON file (`faq_data.json`)
+- Supports **Arabic & English**
+- Automatically detects the language of the user query
+- Uses **TF-IDF + Cosine Similarity** to find the most relevant answer
+- Provides both:
+  - 🧪 Interactive testing (Notebook)
+  - 🌐 REST API using FastAPI
 
 ---
 
-## 🛠️ Requirements
+## 🧠 How It Works
 
-* Python ≥ 3.9
-* Install dependencies:
+1. User enters a question
+2. System automatically detects language (Arabic / English)
+3. Text is vectorized using **TF-IDF (character n-grams)**
+4. Similarity is calculated using **Cosine Similarity**
+5. Best matching answer is returned
 
-  ```bash
-  pip install flask flask-ngrok pyngrok
-  ```
+---
+
+## 🛠️ Tech Stack
+
+- Python 3.9+
+- FastAPI
+- scikit-learn
+- NumPy
+- JSON dataset
 
 ---
 
 ## 📂 Project Structure
 
 ```
+
 📦 FAQ-Chatbot
- ┣ 📜 faq_data.json     # FAQ dataset (Q&A in Arabic + English)
- ┣ 📜 faq_bot_smart_similarity.py    # Interactive chatbot
- ┗ 📜 README.md         # Project description
-```
+┣ 📁 app/
+┃ ┣ 📄 main.py
+┃ ┣ 📁 routes/
+┃ ┃ ┗ 📄 predict.py
+┃ ┣ 📁 services/
+┃ ┃ ┗ 📄 chatbot_service.py
+┃ ┣ 📁 utils/
+┃ ┃ ┗ 📄 language.py
+┃ ┗ 📄 config.py
+┃
+┣ 📁 model/
+┃ ┣ 📄 faq_bot.py
+┃ ┗ 📁 data/
+┃ ┃ ┗ 📄 faq_data.json
+┃
+┣ 📓 notebooks/
+┃ ┗ 📄 testing.ipynb
+┃
+┣ 📄 requirements.txt
+┣ 📄 run.py
+┗ 📄 README.md
+
+````
 
 ---
 
-## 📌 FAQ JSON Format
+## 📌 Dataset Format (JSON)
 
-Your `faq_data.json` must follow this structure:
+The dataset must follow this structure:
 
 ```json
 [
@@ -44,54 +76,116 @@ Your `faq_data.json` must follow this structure:
     "answer_ar": "Ma’man هو منصة لإدارة المحتوى للأطفال والمراهقين.",
     "question_en": "What is Ma'man?",
     "answer_en": "Ma’man is a content management platform for kids and teens."
-  },
-  {
-    "question_ar": "كيف يمكنني التسجيل؟",
-    "answer_ar": "يمكنك التسجيل عبر الموقع الإلكتروني.",
-    "question_en": "How can I register?",
-    "answer_en": "You can register through the website."
   }
 ]
+````
+
+---
+
+## ⚙️ Installation
+
+```bash
+pip install -r requirements.txt
 ```
 
 ---
 
-## ⚙️ How It Works
+## 🚀 Run the Project
 
-### 1️⃣ Interactive Mode
-
-Run the chatbot in the terminal:
+### ▶️ 1. Run FastAPI Server
 
 ```bash
-python faq_bot_smart_similarity.py
+python run.py
 ```
 
-Sample conversation:
+or
+
+```bash
+uvicorn app.main:app --reload
+```
+
+---
+
+### 🌐 API Documentation
+
+After running the server, open:
 
 ```
-اكتب سؤالك (أو 'exit' للخروج): ما هو مأمن؟
-اختر اللغة 'ar' للعربي أو 'en' للإنجليزي: ar
-
-نتائج البحث:
-سؤال: ما هو مأمن؟
-إجابة: Ma’man هو منصة لإدارة المحتوى للأطفال والمراهقين.
+http://127.0.0.1:8000/docs#/
 ```
+
+---
+
+## 📡 API Usage
+
+### 📥 Request
+
+```http
+POST /predict
+```
+
+```json
+{
+  "query": "ما هو مأمن؟"
+}
+```
+
+---
+
+### 📤 Response
+
+```json
+{
+  "results": [
+    {
+      "question": "ما هو مأمن؟",
+      "answer": "Ma’man هو منصة لإدارة المحتوى للأطفال والمراهقين.",
+      "similarity": 0.92,
+      "lang": "ar"
+    }
+  ]
+}
+```
+
+---
+
+## 🧪 Interactive Notebook
+
+You can test the model using:
+
+```
+notebooks\faq_bot_smart_similarity.ipynb
+```
+
+Features:
+
+* Manual testing
+* Language detection demo
+* Interactive chatbot mode
 
 ---
 
 ## 🎯 Features
 
-* Supports **Arabic & English**.
-* Fuzzy search with **difflib SequenceMatcher**.
-* Two modes: **interactive CLI** and **Flask REST API**.
-* Easy to extend with new questions in `faq_data.json`.
+* 🌍 Multilingual (Arabic + English)
+* 🧠 Automatic language detection
+* 🔍 TF-IDF similarity search
+* ⚡ Fast API using FastAPI
+* 📊 Clean and scalable architecture
+* 🧪 Notebook-based testing
 
 ---
 
-## 📌 Notes
+## 🔮 Future Improvements
 
-* Similarity is based on substring match + ratio (`SequenceMatcher`).
-* Works best with well-structured and clean Q\&A data.
-* If no match is found, a fallback message is returned.
+* Replace TF-IDF with BERT embeddings
+* Add semantic search (AI-powered understanding)
+* Add database support (MongoDB / PostgreSQL)
 
+---
 
+## 👨‍💻 Author
+
+Built as an AI/NLP learning project for FAQ retrieval systems.
+
+```

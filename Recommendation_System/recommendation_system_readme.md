@@ -1,104 +1,214 @@
-# Recommendation System Project
+# 📌 Recommendation System Project
 
-## Project Overview
-This project implements a **hybrid recommendation system** for educational content. It combines **collaborative filtering** and **content-based filtering** using **LightFM** and **LightGBM ranking** models to generate personalized recommendations for users.
+## 🚀 Project Overview
 
-The system is capable of:  
-- Recommending courses/items for users based on past interactions.  
-- Leveraging content metadata (title, description, category, level).  
-- Handling both small and large datasets efficiently.  
-- Evaluating recommendations using **Precision@k**, **Recall@k**, and **NDCG@k** metrics.
+This project implements a **Content-Based Recommendation System API** for educational courses using **FastAPI**.
 
-## Datasets Used
-The project uses **two types of data**:
+It recommends similar courses based on **text similarity (TF-IDF + Cosine Similarity)** using course titles.
 
-1. **Educational Platform Dataset**  
-   - `users.xlsx`: Contains user information (`user_id`, `age`, `interest`, `level`, `learning_style`).  
-   - `interactions_edu_200000.csv`: User interactions with content (`user_id`, `content_id`, `time_spent`, `rating`).  
-   - `content.csv`: Content metadata (`content_id`, `title`, `description`, `category`, `level`).
+The system also supports **partial title search** to handle user input flexibility.
 
-2. **Udemy Courses Dataset**  
-   - `udemy_online_education_courses_dataset.csv`: Contains course info (`course_id`, `course_title`, `subject`, `num_subscribers`, `num_reviews`).  
-   - Interaction strength approximated using `num_subscribers` and `num_reviews`.
+---
 
-## Data Preprocessing
-- Missing values filled:  
-  - Categorical → `'unknown'`  
-  - Numerical → median or 0  
-- Interaction strength computed using **weighted combination** of ratings/time_spent or subscribers/reviews.  
-- Sparse users/items removed to ensure quality recommendations.  
-- User-item interaction matrices created (`R`).  
-- Text features combined (title + description + category + level) and transformed with **TF-IDF** for content-based features.
+## ✨ Features
 
-## Models Used
+* 🔍 Content-based recommendation using course titles
+* 🧠 TF-IDF + Cosine Similarity model
+* 🔎 Partial title matching (fuzzy search)
+* ⚡ FastAPI REST API
+* 🎯 Top-k recommendations
+* 🧾 Clean structured JSON response
+* 🖥 Streamlit UI support (frontend)
 
-### 1. LightFM Hybrid Model
-- Combines **collaborative filtering** and **content features**.  
-- Item features built safely using **TF-IDF tokens**.  
-- Trained with **WARP loss**.  
-- Generates **user and item embeddings**.
+---
 
-### 2. LightGBM Ranking Model
-- Uses features like:  
-  - User/item statistics from interaction matrix.  
-  - Dot product of user and item embeddings.  
-  - Content metadata (duration, difficulty, level match, rating).  
-- Positive and negative samples created for training.  
-- Trained to **rank candidate items** for each user.
+## 📂 Dataset
 
-## Recommendation Workflow
-1. Generate candidate items using **FAISS similarity search**.  
-2. Compute features for each candidate (user stats, item stats, embeddings, content).  
-3. Predict scores using **LightGBM ranker**.  
-4. Return top-k recommendations, optionally with metadata.
+The system uses a dataset:
 
-Example usage:
-```python
-recommendations = recommend(user_id=123, topk=10, include_metadata=True)
+* `content.csv`
+
+  * `title`: Course title
+  * (optional other metadata)
+
+---
+
+## 🧹 Data Preprocessing
+
+* Missing titles filled with empty strings
+* Titles cleaned (lowercase + strip)
+* Combined text features created from title
+* TF-IDF vectorization applied to text
+* Cosine similarity computed between all courses
+
+---
+
+## 🤖 Model Architecture
+
+### 📌 1. TF-IDF Vectorizer
+
+Converts course titles into numerical vectors:
+
+\text{TF-IDF}(t,d) = \text{TF}(t,d) \times \text{IDF}(t)
+
+* Captures importance of words in titles
+* Removes common words (stopwords)
+
+---
+
+### 📌 2. Cosine Similarity
+
+\text{similarity}(A,B)=\frac{A \cdot B}{|A|,|B|}
+
+* Measures similarity between course vectors
+* Used to rank recommendations
+
+---
+
+## 🔥 API Endpoints
+
+### 🏠 Home
+
+```http
+GET /
 ```
 
-## Evaluation Metrics
-- **Precision@k:** Fraction of recommended items that are relevant.  
-- **Recall@k:** Fraction of relevant items that are recommended.  
-- **NDCG@k:** Ranking quality of recommended items.
+Response:
 
-**Example Results (Udemy Dataset, k=10, 50 users):**
-- Average Precision@10: 0.098  
-- Average Recall@10: 0.980  
-- Average NDCG@10: 0.951
-
-**Example Results (Educational Platform Dataset, k=30, 50 users):**
-- Average Precision@30: ~0.034  
-- Average Recall@30: ~0.024  
-- Average NDCG@30: ~0.042
-
-> ✅ The hybrid approach improves recommendations by combining content similarity with user interaction patterns.
-
-## Saving and Loading Models
-- User/item mappings: `user2index.pkl`, `item2index.pkl`, `index2item.pkl`  
-- Embeddings: `user_embeddings.npy`, `item_embeddings.npy`  
-- Models: `lightfm_model.pkl` (LightFM), `ranker_model.txt` (LightGBM)  
-- TF-IDF Vectorizer: `tfidf_vectorizer.pkl`
-
-## How to Use
-```python
-# Get top 10 recommendations for a user
-recs = recommend(user_id=123, topk=10, include_metadata=True)
-
-# Evaluate a single user
-precision, recall, ndcg = evaluate_user(user_id=123, k=10)
-
-# Evaluate multiple users
-evaluate_all_users(k=10, sample_users=50)
+```json
+{
+  "message": "API is running 🚀"
+}
 ```
 
-## Requirements
+---
+
+### 🎯 Get Recommendations
+
+```http
+GET /recommend?title=python&k=5
+```
+
+### Parameters:
+
+* `title` → course title (or partial title)
+* `k` → number of recommendations
+
+---
+
+### 📤 Response Example:
+
+```json
+{
+  "input": "Python for Beginners",
+  "recommendations": [
+    "Natural Language Processing with Python",
+    "Computer Vision Basics",
+    "Mobile App Development with Flutter",
+    "Power BI for Data Analysis",
+    "Artificial Intelligence Fundamentals"
+  ]
+}
+```
+
+---
+
+## 🔎 Smart Search Feature
+
+The system supports **partial matching**:
+
+✔ Input:
+
+```
+"Data"
+```
+
+✔ Output:
+
+* Data Science Course
+* Data Analysis with Python
+* Data Engineering Basics
+
+---
+
+## 🖥 Streamlit Frontend
+
+A simple UI built with Streamlit:
+
+### Features:
+
+* Enter course title
+* Choose number of recommendations
+* Display ranked results
+
+### API call:
+
+```python
+requests.get("http://127.0.0.1:8000/recommend", params={
+    "title": title,
+    "k": k
+})
+```
+
+---
+
+## ⚙️ Tech Stack
+
+* FastAPI
+* Pandas
+* Scikit-learn
+* TF-IDF Vectorizer
+* Cosine Similarity
+* Requests (API calls)
+
+---
+
+## 🚀 How to Run Project
+
+### 1️⃣ Run FastAPI Backend
+
 ```bash
-pip install pandas numpy scikit-learn lightfm lightgbm tqdm faiss-cpu
+uvicorn app:app --reload
 ```
 
-## Notes
-- FAISS is used for fast similarity search over embeddings.  
-- Negative sampling is applied for ranking training.  
-- Supports partial title search and recommendations based on similar courses.
+Open:
+
+```
+http://127.0.0.1:8000/docs
+```
+
+---
+
+## 📊 Evaluation (Optional Extension)
+
+Future improvements can include:
+
+* Precision@k
+* Recall@k
+* NDCG@k
+* User feedback loop
+
+---
+
+## 📦 Installation
+
+```bash
+pip install fastapi uvicorn pandas scikit-learn requests
+```
+
+---
+
+## 💡 Future Improvements
+
+* Add collaborative filtering (LightFM)
+* Add ranking model (LightGBM)
+* Deploy on Railway / Render
+* Add user personalization
+* Add vector database (FAISS)
+
+---
+
+## 👩‍💻 Author
+
+AI Recommendation System Project 🚀
 
